@@ -1,0 +1,68 @@
+<div class="title">
+  <h1>Dashboard</h1>
+  <button (click)="load()">Refresh</button>
+</div>
+<p class="welcome">Welcome back, {{ auth.user()?.firstName || auth.user()?.userName }}.</p>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+@if (data(); as d) {
+  <section class="stats">
+    <div class="stat"><span class="label">Total users</span><span class="value">{{ d.totalUsers }}</span></div>
+    <div class="stat"><span class="label">Active</span><span class="value ok">{{ d.activeUsers }}</span></div>
+    <div class="stat"><span class="label">Inactive</span><span class="value muted">{{ d.inactiveUsers }}</span></div>
+    <div class="stat"><span class="label">New (30 days)</span><span class="value">{{ d.newUsersLast30Days }}</span></div>
+    <div class="stat"><span class="label">Sign-ins (7 days)</span><span class="value">{{ d.loginsLast7Days }}</span></div>
+  </section>
+
+  <section class="grid">
+    <div class="panel">
+      <h2>Sign-ins, last 7 days</h2>
+      <div class="columns">
+        @for (day of d.loginsByDay; track day.date) {
+          <div class="col" [title]="day.count + ' sign-ins'">
+            <span class="count">{{ day.count }}</span>
+            <div class="track"><div class="bar" [style.height.%]="pct(day.count, maxLogins())"></div></div>
+            <span class="day">{{ day.date | date: 'EEE' }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Users by role</h2>
+      @for (r of d.usersByRole; track r.role) {
+        <div class="row">
+          <span class="name">{{ r.role }}</span>
+          <div class="htrack"><div class="hbar" [style.width.%]="pct(r.count, maxRole())"></div></div>
+          <span class="num">{{ r.count }}</span>
+        </div>
+      } @empty {
+        <p class="muted">No roles defined.</p>
+      }
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Recent activity</h2>
+    <table>
+      <thead><tr><th>When</th><th>User</th><th>Action</th><th>Target</th></tr></thead>
+      <tbody>
+        @for (a of d.recentActivity; track a.id) {
+          <tr>
+            <td>{{ utc(a.createdAt) | date: 'MMM d, HH:mm' }}</td>
+            <td>{{ a.userName ?? '—' }}</td>
+            <td><span class="tag" [class.bad]="a.action === 'LoginFailed'">{{ a.action }}</span></td>
+            <td>{{ a.entityName ? a.entityName + ' #' + a.entityId : '—' }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="4" class="muted">No activity yet.</td></tr>
+        }
+      </tbody>
+    </table>
+  </section>
+} @else if (!error()) {
+  <p class="muted">Loading…</p>
+}

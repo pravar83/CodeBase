@@ -1,0 +1,23 @@
+<div class="page">
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()">
+    <h1>Sign in to MyApp</h1>
+
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+
+    <label>
+      User name or email
+      <input formControlName="userNameOrEmail" autocomplete="username" autofocus />
+    </label>
+
+    <label>
+      Password
+      <input formControlName="password" type="password" autocomplete="current-password" />
+    </label>
+
+    <button class="primary" type="submit" [disabled]="form.invalid || submitting()">
+      {{ submitting() ? 'Signing in…' : 'Sign in' }}
+    </button>
+  </form>
+</div>

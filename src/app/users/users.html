@@ -1,0 +1,51 @@
+<h1>Users</h1>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+@if (auth.isAdmin()) {
+  <form [formGroup]="form" (ngSubmit)="add()" class="add-form">
+    <input formControlName="userName" placeholder="User name" />
+    <input formControlName="email" placeholder="Email" type="email" />
+    <input formControlName="firstName" placeholder="First name" />
+    <input formControlName="lastName" placeholder="Last name" />
+    <input formControlName="password" placeholder="Password (min 8)" type="password" autocomplete="new-password" />
+    <select formControlName="role">
+      @for (r of roles(); track r.id) {
+        <option [value]="r.name">{{ r.name }}</option>
+      }
+    </select>
+    <button class="primary" type="submit" [disabled]="form.invalid">Add user</button>
+  </form>
+}
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else {
+  <table>
+    <thead>
+      <tr><th>User name</th><th>Name</th><th>Email</th><th>Roles</th><th>Created</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      @for (u of users(); track u.id) {
+        <tr [class.inactive]="!u.isActive">
+          <td>{{ u.userName }}</td>
+          <td>{{ u.firstName }} {{ u.lastName }}</td>
+          <td>{{ u.email }}</td>
+          <td>{{ u.roles.join(', ') }}</td>
+          <td>{{ u.createdAt | date: 'mediumDate' }}</td>
+          @if (auth.isAdmin() && u.id !== auth.user()?.id) {
+            <td><button (click)="toggleActive(u)">{{ u.isActive ? 'Active' : 'Inactive' }}</button></td>
+            <td><button class="danger" (click)="remove(u)">Delete</button></td>
+          } @else {
+            <td>{{ u.isActive ? 'Active' : 'Inactive' }}</td>
+            <td></td>
+          }
+        </tr>
+      } @empty {
+        <tr><td colspan="7">No users yet.</td></tr>
+      }
+    </tbody>
+  </table>
+}
